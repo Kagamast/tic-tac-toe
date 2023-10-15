@@ -1,0 +1,213 @@
+<!DOCTYPE HTML>
+<html>
+    <head>
+        <meta http-equiv="content-type" content="text/html; charset=utf-8" />
+    
+        <title>TicTacToe</title>
+        <style>
+:root{
+    --notSelectedSq: #333;
+    --hoverSq: #444;
+    --selectedSq: #555;
+    --goodSq: #3b3;
+    --badSq: #b33;
+    --symbolColor: #fff;
+}
+body{
+    overflow: hidden;
+    background-color: #222;
+}
+.grid{
+    position: absolute;
+    top: 5px;
+    left: 50%;
+    transform: translate(-50%, 0);
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    grid-template-rows: 1fr 1fr 1fr;
+    width: calc(100vmin - 10px);
+    height: calc(100vmin - 10px);
+    
+    place-items: center center;
+}
+.square{
+    position: relative;
+    width: calc(100% - 10px);
+    height: calc(100% - 10px);
+    background-color: var(--notSelectedSq);
+    border-radius: 100%;
+    font-family: Sans-Serif;
+    transition: border-radius 0.1s, background-color 0.1s, box-shadow 0.1s;
+}
+.square:not(.filledSq):hover{
+    background-color: var(--hoverSq);
+    box-shadow: 0 0 10px 2px var(--hoverSq);
+}
+.square svg{
+    width: 100%;
+    height: 100%;
+}
+.outCircle{
+    position: absolute;
+}
+#winText{
+    position: absolute;
+    bottom: 0;
+}
+        </style>
+    </head>
+    <body>
+        <div class="grid">
+            <div class="square" onclick="selectSquare(0, 'X')"></div>
+            <div class="square" onclick="selectSquare(1, 'X')"></div>
+            <div class="square" onclick="selectSquare(2, 'X')"></div>
+            <div class="square" onclick="selectSquare(3, 'X')"></div>
+            <div class="square" onclick="selectSquare(4, 'X')"></div>
+            <div class="square" onclick="selectSquare(5, 'X')"></div>
+            <div class="square" onclick="selectSquare(6, 'X')"></div>
+            <div class="square" onclick="selectSquare(7, 'X')"></div>
+            <div class="square" onclick="selectSquare(8, 'X')"></div>
+        </div>
+    </body>
+    <script type="text/javascript" charset="utf-8">
+let clickedAfter = 0
+let score = [0, 0]
+window.addEventListener('click', tryResetGame)
+window.addEventListener('keydown', tryResetGame)
+window.addEventListener('keydown', (e) => {
+    let keyOrder = (e.keyCode) - 97
+    selectSquare(keyOrder - ((parseInt(keyOrder / 3) - 1) * 6), "X")
+})
+let X = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"-2 -2 20 20\"><path d=\"m 0 2 l 2 -2 l 6 6 l 6 -6 l 2 2 l -6 6 l 6 6 l -2 2 l -6 -6 l -6 6 l -2 -2 l 6 -6 z\" fill=\"var(--symbolColor)\"/></svg>"
+let O = "<svg xmlns=\"http://www.w3.org/2000/svg\" viewBox=\"-2 -2 20 20\"><path d=\"M 1.4 8 A 1 1 0 0 0 14.6 8 A 1 1 0 0 0 1.4 8\" stroke=\"var(--symbolColor)\" stroke-width=\"2.8\" fill=\"#0000\"/></svg>"
+let gameEnded = false
+let grid = []
+let squares = document.getElementsByClassName("square")
+winCombos = [
+    [0, 1, 2],
+    [3, 4, 5],
+    [6, 7, 8],
+    [0, 3, 6],
+    [1, 4, 7],
+    [2, 5, 8],
+    [0, 4, 8],
+    [2, 4, 6]
+]
+loadGrid()
+function loadGrid(){
+for(let i = 0; i < 9; i++){
+    grid.push(" ")
+}}
+function tryResetGame(){
+    if(gameEnded){
+        if(clickedAfter > 0){
+            resetGrid()
+        }
+        let detectedWin = detectWin()
+        if(detectedWin.length == 2){
+            score[0]++
+            score[1]++
+        }else if(detectedWin[0][0] == 1){
+            score[0]++
+        }else if(detectedWin[0][0] == 2){
+            score[1]++
+        }
+        document.title = score[0] + " - " + score[1]
+        ++clickedAfter
+    }
+}
+function resetGrid(){
+    grid = []
+    loadGrid()
+    updateSquares()
+    gameEnded = false
+    clickedAfter = 0
+    for(i in squares){
+        squares[i].classList.remove("filledSq")
+        squares[i].style.borderRadius = "100%"
+        squares[i].style.backgroundColor = "var(--notSelectedSq)"
+    }
+}
+function updateSquares(){
+    for(i in squares){
+        squares[i].innerHTML = grid[i] == "X" ? X : grid[i] == "O" ? O : ""
+    }
+}
+function selectSquare(order, symbol){if(!gameEnded){
+    if(grid[order] == " "){
+        grid[order] = symbol
+        squares[order].classList.add("filledSq")
+    if(symbol == "X"){
+        brigtenSquare(order)
+        updateSquares()
+        compPick()
+    }else{
+        setTimeout(() => {
+            brigtenSquare(order)
+            updateSquares()
+        }, 300)
+    }
+    }
+    detectedWin = detectWin()
+    if(detectedWin != false){
+        let winOrder = detectedWin[0][1]
+        gameEnded = true
+        for(let i = 0; i <9; i++){
+            squares[i].classList.add("filledSq")
+        }
+        setTimeout(() => {
+            for(clr in detectedWin){
+                for(i in winCombos[0]){
+                    let colorOrder = detectedWin[clr][1]
+                    let winColor =detectedWin[clr][0] == 1 ? "var(--goodSq)" : "var(--badSq)"
+        squares[winCombos[detectedWin[clr][1]][i]].style.backgroundColor = winColor
+    }}}, 300)}
+}}
+function brigtenSquare(order){
+        squares[order].style.backgroundColor = "var(--selectedSq)"
+        squares[order].style.borderRadius = "20%"
+}
+function compPick(){if(!gameEnded){
+    let done = false
+    let failSafe = 0
+    while(!done && failSafe < 100){
+        let pick = parseInt(Math.random() * squares.length)
+        if(grid[pick] == " "){
+            selectSquare(pick, "O")
+            done = true
+        }
+        failSafe++
+    }
+}}
+function detectWin(){
+    let returnedWin = [] //team, variant
+    let checkSymbol = null
+    let emptySpaces = 0
+    for(let team = 0; team < 3; team++){
+        if(team == 0){
+            checkSymbol = "X"
+        }else if(team == 1){
+            checkSymbol= "O"
+        }else{
+            checkSymbol = " "
+        }
+    for(i in winCombos){
+        if(grid[winCombos[i][0]] == checkSymbol && grid[winCombos[i][1]] == checkSymbol && grid[winCombos[i][2]] == checkSymbol && team != 2){
+            returnedWin.push([team + 1, i])
+        }
+    }
+    }
+    for(i in grid){
+        emptySpaces += grid[i] == " " ? 1 : 0
+    }
+    console.log(emptySpaces)
+    if(emptySpaces == 0){
+            gameEnded = true
+        }
+    return returnedWin.length != 0 ? returnedWin : emptySpaces == 0 ? "stuck" : false
+}
+
+
+updateSquares()
+    </script>
+</html>
